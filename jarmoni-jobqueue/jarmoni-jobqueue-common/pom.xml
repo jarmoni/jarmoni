@@ -3,18 +3,21 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>org.jarmoni</groupId>
-		<artifactId>jarmoni</artifactId>
+		<artifactId>jarmoni-jobqueue</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
-	<artifactId>jarmoni-jobqueue</artifactId>
-	<packaging>pom</packaging>
-	
+	<artifactId>jarmoni-jobqueue-common</artifactId>
+
 	<properties>
 		<!-- checkstyle -->
-		<checkstyle.config.dir>../</checkstyle.config.dir>
+		<checkstyle.config.dir>../../</checkstyle.config.dir>
 	</properties>
 	
-	<modules>
-		<module>jarmoni-jobqueue-common</module>
-	</modules>
+	<dependencies>
+		<dependency>
+			<groupId>org.jarmoni</groupId>
+			<artifactId>jarmoni-util</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+	</dependencies>
 </project>

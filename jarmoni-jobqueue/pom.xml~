@@ -15,6 +15,6 @@
 	</properties>
 	
 	<modules>
-		<module>jarmoni-jobqueue-common</module>
+		<module>jarmoni-jobqueue-api</module>
 	</modules>
 </project>
