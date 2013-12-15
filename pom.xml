@@ -43,12 +43,12 @@
 
 		<!-- software -->
 		<!-- spring -->
-		<spring.version>3.2.4.RELEASE</spring.version>
+		<spring.version>3.2.5.RELEASE</spring.version>
 		<!-- guava -->
-		<guava.version>14.0.1</guava.version>
+		<guava.version>15.0</guava.version>
 		<!-- logging -->
-		<slf4j.version>1.6.4</slf4j.version>
-		<logback.version>1.0.7</logback.version>
+		<slf4j.version>1.7.5</slf4j.version>
+		<logback.version>1.0.13</logback.version>
 		<commons-logging.version>99.0-does-not-exist</commons-logging.version>
 		<!-- testing -->
 		<junit.version>4.11</junit.version>
@@ -72,6 +72,16 @@
 			<dependency>
 				<groupId>org.springframework</groupId>
 				<artifactId>spring-context</artifactId>
+				<version>${spring.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-orm</artifactId>
+				<version>${spring.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-aspects</artifactId>
 				<version>${spring.version}</version>
 			</dependency>
 			<!-- guava -->

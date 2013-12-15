@@ -7,20 +7,23 @@ package org.jarmoni.jobqueue.common.impl;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.jarmoni.jobqueue.common.api.IJob;
 import org.jarmoni.jobqueue.common.api.IJobEntity;
 import org.jarmoni.jobqueue.common.api.IJobGroup;
 import org.jarmoni.jobqueue.common.api.IJobPersister;
-import org.jarmoni.jobqueue.common.api.IQueueService;
+import org.jarmoni.jobqueue.common.api.IJobReceiver;
+import org.jarmoni.jobqueue.common.api.IJobQueueService;
 import org.jarmoni.util.Asserts;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Maps;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
-public class JobQueueService implements IQueueService {
+public class JobQueueService implements IJobQueueService {
 
 	private static final long SLEEP_INTERVAL = 1000L;
 
@@ -28,40 +31,114 @@ public class JobQueueService implements IQueueService {
 
 	private final JobQueueServiceAccess queueServiceAccess;
 
-	private IJobPersister persister;
+	private final IJobPersister persister;
 
-	private boolean running = false;
+	private int numReceiverThreads = 1;
+	private int numFinishedReceiverThreads = 1;
+	private int numTimeoutReceiverThreads = 1;
+
+	private ExecutorService newJobExecutorPool;
+	private ExecutorService finishedJobExecutorPool;
+	private ExecutorService exceededJobExecutorPool;
+	private ExecutorService newJobScannerPool;
+	private ExecutorService finishedJobScannerPool;
+	private ExecutorService exceededJobScannerPool;
 
 	private final Logger logger = LoggerFactory.getLogger(JobQueueService.class);
 
-	public JobQueueService() {
+	public JobQueueService(final Collection<IJobGroup> jobGroups, final IJobPersister jobPersister) {
 
+		Asserts.notNullSimple(jobGroups, "jobGroups");
+		for (final IJobGroup group : jobGroups) {
+			this.jobGroups.put(group.getName(), this.validateJobGroup(group));
+		}
+		this.persister = Asserts.notNullSimple(jobPersister, "jobPersister");
 		this.queueServiceAccess = new JobQueueServiceAccess(this);
+		this.init();
+	}
+
+	private void init() {
+
+		this.newJobExecutorPool = Executors.newFixedThreadPool(this.numReceiverThreads,
+				new ThreadFactoryBuilder().setNameFormat("new-job-executor-%d").build());
+		this.finishedJobExecutorPool = Executors.newFixedThreadPool(this.numFinishedReceiverThreads,
+				new ThreadFactoryBuilder().setNameFormat("finished-job-executor-%d").build());
+		this.exceededJobExecutorPool = Executors.newFixedThreadPool(this.numTimeoutReceiverThreads,
+				new ThreadFactoryBuilder().setNameFormat("exceeded-job-executor-%d").build());
+		this.newJobScannerPool = Executors.newFixedThreadPool(1, new ThreadFactoryBuilder().setNameFormat("new-job-scanner-%d").build());
+		this.finishedJobScannerPool = Executors.newFixedThreadPool(1, new ThreadFactoryBuilder().setNameFormat("finished-job-scanner-%d").build());
+		this.exceededJobScannerPool = Executors.newFixedThreadPool(1, new ThreadFactoryBuilder().setNameFormat("exceeded-job-scanner-%d").build());
 	}
 
 	/**
 	 * lifecycle-method
 	 */
-	public void startExceededJobChecker() {
+	public void start() {
 
-		if (this.running) {
-			this.logger.info("JobQueueService already running");
-			return;
+		this.logger.info("JobQueueService#start()");
+
+		try {
+			this.persister.refresh();
+		} catch (final JobQueueException e) {
+			throw new RuntimeException("Could not refresh jobs", e);
 		}
-		Executors.newSingleThreadScheduledExecutor().execute(new ExceededJobChecker());
-		this.running = true;
+
+		this.newJobScannerPool.execute(new JobScanner(new IJobSubmitter() {
+
+			@Override
+			public void submit(final IJobEntity jobEntity) throws JobQueueException {
+				processNewJob(jobEntity);
+
+			}
+
+			@Override
+			public Collection<IJobEntity> getJobs() throws JobQueueException {
+				return persister.getNewJobs();
+			}
+		}));
+
+		this.exceededJobScannerPool.execute(new JobScanner(new IJobSubmitter() {
+
+			@Override
+			public void submit(final IJobEntity jobEntity) throws JobQueueException {
+				processExceededJob(jobEntity);
+			}
+
+			@Override
+			public Collection<IJobEntity> getJobs() throws JobQueueException {
+				return persister.getExceededJobs();
+			}
+		}));
+
+		this.finishedJobExecutorPool.execute(new JobScanner(new IJobSubmitter() {
+
+			@Override
+			public void submit(final IJobEntity jobEntity) throws JobQueueException {
+				processFinishedJob(jobEntity);
+
+			}
+
+			@Override
+			public Collection<IJobEntity> getJobs() throws JobQueueException {
+				return persister.getFinishedJobs();
+			}
+		}));
+
 	}
 
 	/**
 	 * lifecycle-method
 	 */
-	public void stopExceededJobChecker() {
+	public void stop() {
 
-		if (!this.running) {
-			this.logger.info("JobQueueService is not running");
-			return;
-		}
-		this.running = false;
+		this.logger.info("JobQueueService#stop()");
+
+		this.newJobScannerPool.shutdownNow();
+		this.finishedJobScannerPool.shutdownNow();
+		this.exceededJobScannerPool.shutdownNow();
+		this.newJobExecutorPool.shutdownNow();
+		this.finishedJobExecutorPool.shutdownNow();
+		this.exceededJobExecutorPool.shutdownNow();
 	}
 
 	@Override
@@ -77,15 +154,7 @@ public class JobQueueService implements IQueueService {
 		Asserts.notNullOrEmptySimple(group, "group", JobQueueException.class);
 		Asserts.state(this.jobGroups.containsKey(group), "Group does not exist. Group='" + group + "'", JobQueueException.class);
 
-		final String jobId = this.persister.insert(jobObject, group, timeout);
-
-		final IJob job = new Job(jobId, group, jobObject, this.queueServiceAccess);
-
-		final IJobGroup jobGroup = this.getJobGroupInternal(job.getJobId());
-		Asserts.notNullSimple(jobGroup.getJobReceiver(), "jobReceiver", JobQueueException.class);
-		jobGroup.getJobReceiver().receive(job);
-
-		return jobId;
+		return this.persister.insert(jobObject, group, timeout);
 	}
 
 	@Override
@@ -106,11 +175,7 @@ public class JobQueueService implements IQueueService {
 	public void resume(final String jobId) throws JobQueueException {
 
 		Asserts.notNullOrEmptySimple(jobId, "jobId", JobQueueException.class);
-		final IJobEntity jobEntity = this.persister.resume(jobId);
-
-		final IJobGroup jobGroup = this.getJobGroupInternal(jobId);
-		Asserts.notNullSimple(jobGroup.getJobReceiver(), "jobReceiver", JobQueueException.class);
-		jobGroup.getJobReceiver().receive(new Job(jobEntity.getId(), jobEntity.getJobGroup(), jobEntity.getJobObject(), this.queueServiceAccess));
+		this.persister.resume(jobId);
 	}
 
 	@Override
@@ -124,11 +189,7 @@ public class JobQueueService implements IQueueService {
 	public void setFinished(final IJob job) throws JobQueueException {
 
 		Asserts.notNullSimple(job, "job", JobQueueException.class);
-		final IJobGroup jobGroup = this.getJobGroupInternal(job.getJobId());
-		Asserts.notNullSimple(jobGroup.getFinishedReceiver(), "finishedReceiver", JobQueueException.class);
-		jobGroup.getFinishedReceiver().receive(job);
-
-		persister.delete(job.getJobId());
+		this.persister.setFinished(job.getJobId());
 	}
 
 	@Override
@@ -147,15 +208,28 @@ public class JobQueueService implements IQueueService {
 		}
 	}
 
-	private void pushExceededJob(final IJobEntity jobEntity) throws JobQueueException {
+	private void processNewJob(final IJobEntity jobEntity) throws JobQueueException {
 
 		final IJob job = new Job(jobEntity.getId(), jobEntity.getJobGroup(), jobEntity.getJobObject(), this.queueServiceAccess);
 
 		final IJobGroup jobGroup = this.getJobGroupInternal(job.getJobId());
-		Asserts.notNullSimple(jobGroup.getTimeoutReceiver(), "timeoutReceiver", JobQueueException.class);
-		jobGroup.getTimeoutReceiver().receive(job);
+		this.newJobExecutorPool.execute(new ReceiverExecutor(jobGroup.getJobReceiver(), job, false));
+	}
 
-		this.persister.delete(job.getJobId());
+	private void processFinishedJob(final IJobEntity jobEntity) throws JobQueueException {
+
+		final IJob job = new Job(jobEntity.getId(), jobEntity.getJobGroup(), jobEntity.getJobObject(), this.queueServiceAccess);
+
+		final IJobGroup jobGroup = this.getJobGroupInternal(job.getJobId());
+		this.finishedJobExecutorPool.execute(new ReceiverExecutor(jobGroup.getFinishedReceiver(), job, true));
+	}
+
+	private void processExceededJob(final IJobEntity jobEntity) throws JobQueueException {
+
+		final IJob job = new Job(jobEntity.getId(), jobEntity.getJobGroup(), jobEntity.getJobObject(), this.queueServiceAccess);
+
+		final IJobGroup jobGroup = this.getJobGroupInternal(job.getJobId());
+		this.exceededJobExecutorPool.execute(new ReceiverExecutor(jobGroup.getTimeoutReceiver(), job, true));
 	}
 
 	private IJobGroup getJobGroupInternal(final String jobId) throws JobQueueException {
@@ -168,26 +242,101 @@ public class JobQueueService implements IQueueService {
 				JobQueueException.class);
 	}
 
-	public class ExceededJobChecker extends Thread {
+	private IJobGroup validateJobGroup(final IJobGroup jobGroup) {
+
+		Asserts.notNullSimple(jobGroup.getName(), "name");
+		Asserts.notNullSimple(jobGroup.getJobReceiver(), "jobReceiver");
+		Asserts.notNullSimple(jobGroup.getFinishedReceiver(), "finishedReceiver");
+		return jobGroup;
+	}
+
+	public void setNumReceiverThreads(final int numReceiverThreads) {
+		this.numReceiverThreads = numReceiverThreads;
+	}
+
+	public void setNumFinishedReceiverThreads(final int numFinishedReceiverThreads) {
+		this.numFinishedReceiverThreads = numFinishedReceiverThreads;
+	}
+
+	public void setNumTimeoutReceiverThreads(final int numTimeoutReceiverThreads) {
+		this.numTimeoutReceiverThreads = numTimeoutReceiverThreads;
+	}
+
+	Map<String, IJobGroup> getJobGroups() {
+		return this.jobGroups;
+	}
+
+	JobQueueServiceAccess getQueueServiceAccess() {
+		return this.queueServiceAccess;
+	}
+
+	public static class JobScanner extends Thread {
+
+		private final IJobSubmitter jobSubmitter;
+
+		private final Logger logger = LoggerFactory.getLogger(JobScanner.class);
+
+		public JobScanner(final IJobSubmitter jobSubmitter) {
+			this.jobSubmitter = Asserts.notNullSimple(jobSubmitter, "jobSubmitter");
+		}
+
 		@Override
 		public void run() {
-			while (running) {
+			while (true) {
 				try {
-					final Collection<IJobEntity> jobEntities = persister.getExceededJobs();
+					final Collection<IJobEntity> jobEntities = this.jobSubmitter.getJobs();
 					if (!jobEntities.isEmpty()) {
 						for (final IJobEntity jobEntity : jobEntities) {
-							pushExceededJob(jobEntity);
+							this.jobSubmitter.submit(jobEntity);
 						}
 					} else {
 						Thread.sleep(SLEEP_INTERVAL);
 					}
 				} catch (final InterruptedException e) {
-					logger.error("Thread interrupted");
+					logger.info("Received interrupt");
 				} catch (final Exception e) {
-					logger.error("Exception while pushing exceeded jobs");
+					logger.error("Exception while pushing exceeded jobs", e);
 				}
 			}
 		}
+	}
+
+	public final class ReceiverExecutor extends Thread {
+
+		private final IJobReceiver jobReceiver;
+		private final IJob job;
+		private final boolean deleteAfterExecution;
+
+		private final Logger logger = LoggerFactory.getLogger(ReceiverExecutor.class);
+
+		public ReceiverExecutor(final IJobReceiver jobReceiver, final IJob job, final boolean deleteAfterExecution) {
+			this.jobReceiver = Asserts.notNullSimple(jobReceiver, "jobReceiver");
+			this.job = Asserts.notNullSimple(job, "job");
+			this.deleteAfterExecution = deleteAfterExecution;
+		}
+
+		@Override
+		public void run() {
+			try {
+				this.jobReceiver.receive(job);
+				if (this.deleteAfterExecution) {
+					try {
+						persister.delete(job.getJobId());
+					} catch (final JobQueueException ex) {
+						logger.error("Could not delete job", ex);
+					}
+				}
+			} catch (final Exception ex) {
+				logger.error("Receiver threw exception", ex);
+			}
+		}
+	}
+
+	public interface IJobSubmitter {
+
+		Collection<IJobEntity> getJobs() throws JobQueueException;
+
+		void submit(IJobEntity jobEntity) throws JobQueueException;
 
 	}
 }

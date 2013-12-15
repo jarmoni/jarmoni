@@ -16,5 +16,6 @@
 	
 	<modules>
 		<module>jarmoni-jobqueue-common</module>
+		<module>jarmoni-jobqueue-jpa</module>
 	</modules>
 </project>

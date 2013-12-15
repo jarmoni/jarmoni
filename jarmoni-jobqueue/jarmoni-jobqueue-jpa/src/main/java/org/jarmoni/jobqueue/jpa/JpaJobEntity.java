@@ -1,22 +1,59 @@
 /*
  * Copyright (c) 2013. All rights reserved.
  * Original Author: ms
- * Creation Date: Nov 17, 2013
+ * Creation Date: Dec 7, 2013
  */
-package org.jarmoni.jobqueue.common.impl;
+package org.jarmoni.jobqueue.jpa;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.Date;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.Id;
+import javax.persistence.Lob;
+import javax.persistence.Table;
+import javax.persistence.Version;
+
 import org.jarmoni.jobqueue.common.api.IJobEntity;
+import org.jarmoni.jobqueue.common.impl.JobState;
 
-public class JobEntity implements IJobEntity {
+@Entity
+@Table(name = "JOB_ENTITY")
+public class JpaJobEntity implements IJobEntity {
 
+	@Id
+	@Column(name = "ID", unique = true, nullable = false, updatable = false)
 	private String id;
+
+	@Version
+	@Column(name = "VERSION", nullable = false)
+	private Integer version;
+
+	@Column(name = "LAST_UPDATE", nullable = false)
 	private Date lastUpdate;
+
+	@Column(name = "TIMEOUT", nullable = false)
 	private Long timeout;
+
+	@Column(name = "CURRENT_TIMEOUT", nullable = false)
 	private Long currentTimeout;
+
+	@Enumerated(EnumType.STRING)
+	@Column(name = "JOB_STATE", nullable = false)
 	private JobState jobState;
-	private Object jobObject;
+
+	@Lob
+	@Column(name = "JOB_OBJECT", nullable = false)
+	private byte[] jobBytes;
+
+	@Column(name = "JOB_GROUP", nullable = false)
 	private String jobGroup;
 
 	@Override
@@ -26,6 +63,14 @@ public class JobEntity implements IJobEntity {
 
 	public void setId(final String id) {
 		this.id = id;
+	}
+
+	public Integer getVersion() {
+		return version;
+	}
+
+	public void setVersion(final Integer version) {
+		this.version = version;
 	}
 
 	@Override
@@ -45,7 +90,7 @@ public class JobEntity implements IJobEntity {
 
 	@Override
 	public void setTimeout(final Long timeout) {
-		this.setTimeout(timeout);
+		this.timeout = timeout;
 	}
 
 	@Override
@@ -70,12 +115,34 @@ public class JobEntity implements IJobEntity {
 
 	@Override
 	public Object getJobObject() {
-		return jobObject;
+		final ByteArrayInputStream bis = new ByteArrayInputStream(this.jobBytes);
+		ObjectInputStream ois;
+		try {
+			ois = new ObjectInputStream(bis);
+			return ois.readObject();
+		} catch (final Exception e) {
+			throw new RuntimeException("Could not read blob", e);
+		}
 	}
 
 	@Override
 	public void setJobObject(final Object jobObject) {
-		this.jobObject = jobObject;
+		final ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		try {
+			final ObjectOutputStream oos = new ObjectOutputStream(bos);
+			oos.writeObject(jobObject);
+			this.jobBytes = bos.toByteArray();
+		} catch (final IOException e) {
+			throw new RuntimeException("Could not create blob", e);
+		}
+	}
+
+	public byte[] getJobBytes() {
+		return this.jobBytes;
+	}
+
+	public void setJobBytes(final byte[] jobBytes) {
+		this.jobBytes = jobBytes;
 	}
 
 	@Override
@@ -94,13 +161,13 @@ public class JobEntity implements IJobEntity {
 
 	public static final class JobEntityBuilder {
 
-		private final JobEntity jobEntity;
+		private final JpaJobEntity jobEntity;
 
 		private JobEntityBuilder() {
-			this.jobEntity = new JobEntity();
+			this.jobEntity = new JpaJobEntity();
 		}
 
-		public JobEntity build() {
+		public JpaJobEntity build() {
 			return this.jobEntity;
 		}
 

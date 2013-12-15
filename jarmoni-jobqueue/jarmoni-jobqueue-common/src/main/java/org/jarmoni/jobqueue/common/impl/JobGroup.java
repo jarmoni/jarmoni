@@ -24,11 +24,11 @@ public class JobGroup implements IJobGroup {
 
 	private IJobReceiver timeoutReceiver;
 
-	private int numJobReceiverThreads = 1;
-
-	private int numFinishedReceiverThreads = 1;
-
-	private int numTimeoutReceiverThreads = 1;
+	// private int numJobReceiverThreads = 1;
+	//
+	// private int numFinishedReceiverThreads = 1;
+	//
+	// private int numTimeoutReceiverThreads = 1;
 
 	private Collection<IJobFinishedStrategy> jobFinishedStrategies = Lists.newArrayList();
 
@@ -81,33 +81,33 @@ public class JobGroup implements IJobGroup {
 		this.timeoutReceiver = timeoutReceiver;
 	}
 
-	@Override
-	public int getNumJobReceiverThreads() {
-		return numJobReceiverThreads;
-	}
-
-	@Override
-	public void setNumJobReceiverThreads(final int numJobReceiverThreads) {
-		this.numJobReceiverThreads = numJobReceiverThreads;
-	}
-
-	@Override
-	public int getNumFinishedReceiverThreads() {
-		return numFinishedReceiverThreads;
-	}
-
-	@Override
-	public void setNumFinishedReceiverThreads(final int numFinishedReceiverThreads) {
-		this.numFinishedReceiverThreads = numFinishedReceiverThreads;
-	}
-
-	@Override
-	public int getNumTimeoutReceiverThreads() {
-		return numTimeoutReceiverThreads;
-	}
-
-	@Override
-	public void setNumTimeoutReceiverThreads(final int numTimeoutReceiverThreads) {
-		this.numTimeoutReceiverThreads = numTimeoutReceiverThreads;
-	}
+	// @Override
+	// public int getNumJobReceiverThreads() {
+	// return numJobReceiverThreads;
+	// }
+	//
+	// @Override
+	// public void setNumJobReceiverThreads(final int numJobReceiverThreads) {
+	// this.numJobReceiverThreads = numJobReceiverThreads;
+	// }
+	//
+	// @Override
+	// public int getNumFinishedReceiverThreads() {
+	// return numFinishedReceiverThreads;
+	// }
+	//
+	// @Override
+	// public void setNumFinishedReceiverThreads(final int numFinishedReceiverThreads) {
+	// this.numFinishedReceiverThreads = numFinishedReceiverThreads;
+	// }
+	//
+	// @Override
+	// public int getNumTimeoutReceiverThreads() {
+	// return numTimeoutReceiverThreads;
+	// }
+	//
+	// @Override
+	// public void setNumTimeoutReceiverThreads(final int numTimeoutReceiverThreads) {
+	// this.numTimeoutReceiverThreads = numTimeoutReceiverThreads;
+	// }
 }

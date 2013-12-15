@@ -9,7 +9,7 @@ import java.util.Collection;
 
 import org.jarmoni.jobqueue.common.impl.JobQueueException;
 
-public interface IQueueService {
+public interface IJobQueueService {
 
 	String push(Object jobObject, String group) throws JobQueueException;
 

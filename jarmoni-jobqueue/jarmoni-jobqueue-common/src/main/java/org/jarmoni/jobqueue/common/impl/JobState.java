@@ -6,5 +6,5 @@
 package org.jarmoni.jobqueue.common.impl;
 
 public enum JobState {
-	PROGRESS, PAUSED
+	NEW, NEW_IN_PROGRESS, PAUSED, FINISHED, FINISHED_IN_PROGRESS, EXCEEDED, EXCEEDED_IN_PROGRESS, ERROR, ERROR_IN_PROGRESS
 }

@@ -19,5 +19,5 @@ public interface IJobQueue {
 
 	void cancel(String jobId) throws JobQueueException;
 
-	void setQueueService(IQueueService queueService);
+	void setQueueService(IJobQueueService queueService);
 }

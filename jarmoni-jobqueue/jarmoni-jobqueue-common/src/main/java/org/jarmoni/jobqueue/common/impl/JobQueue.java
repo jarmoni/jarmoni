@@ -6,14 +6,14 @@
 package org.jarmoni.jobqueue.common.impl;
 
 import org.jarmoni.jobqueue.common.api.IJobQueue;
-import org.jarmoni.jobqueue.common.api.IQueueService;
+import org.jarmoni.jobqueue.common.api.IJobQueueService;
 import org.jarmoni.util.Asserts;
 
 public class JobQueue implements IJobQueue {
 
-	private IQueueService queueService;
+	private IJobQueueService queueService;
 
-	public JobQueue(final IQueueService queueService) {
+	public JobQueue(final IJobQueueService queueService) {
 		this.queueService = Asserts.notNullSimple(queueService, "queueService");
 	}
 
@@ -45,7 +45,7 @@ public class JobQueue implements IJobQueue {
 	}
 
 	@Override
-	public void setQueueService(final IQueueService queueService) {
+	public void setQueueService(final IJobQueueService queueService) {
 		this.queueService = queueService;
 	}
 
