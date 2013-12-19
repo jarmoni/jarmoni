@@ -42,9 +42,6 @@ public class JobQueueService implements IJobQueueService {
 	private ExecutorService finishedJobExecutorPool;
 	private ExecutorService exceededJobExecutorPool;
 	private ExecutorService jobScannerPool;
-	// private ExecutorService newJobScannerPool;
-	// private ExecutorService finishedJobScannerPool;
-	// private ExecutorService exceededJobScannerPool;
 
 	private final Logger logger = LoggerFactory.getLogger(JobQueueService.class);
 
@@ -68,12 +65,6 @@ public class JobQueueService implements IJobQueueService {
 		this.exceededJobExecutorPool = Executors.newFixedThreadPool(this.numTimeoutReceiverThreads,
 				new ThreadFactoryBuilder().setNameFormat("exceeded-job-executor-%d").build());
 		this.jobScannerPool = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("job-scanner-%d").build());
-		// this.newJobScannerPool = Executors.newFixedThreadPool(1, new
-		// ThreadFactoryBuilder().setNameFormat("new-job-scanner-%d").build());
-		// this.finishedJobScannerPool = Executors.newFixedThreadPool(1, new
-		// ThreadFactoryBuilder().setNameFormat("finished-job-scanner-%d").build());
-		// this.exceededJobScannerPool = Executors.newFixedThreadPool(1, new
-		// ThreadFactoryBuilder().setNameFormat("exceeded-job-scanner-%d").build());
 	}
 
 	/**
@@ -108,46 +99,6 @@ public class JobQueueService implements IJobQueueService {
 			}
 		}));
 
-		// this.newJobScannerPool.execute(new JobScanner(new IJobSubmitter() {
-		//
-		// @Override
-		// public void submit(final IJobEntity jobEntity) throws JobQueueException {
-		// processNewJob(jobEntity);
-		//
-		// }
-		//
-		// @Override
-		// public Collection<IJobEntity> getJobs() throws JobQueueException {
-		// return persister.getNewJobs();
-		// }
-		// }));
-		//
-		// this.exceededJobScannerPool.execute(new JobScanner(new IJobSubmitter() {
-		//
-		// @Override
-		// public void submit(final IJobEntity jobEntity) throws JobQueueException {
-		// processExceededJob(jobEntity);
-		// }
-		//
-		// @Override
-		// public Collection<IJobEntity> getJobs() throws JobQueueException {
-		// return persister.getExceededJobs();
-		// }
-		// }));
-		//
-		// this.finishedJobScannerPool.execute(new JobScanner(new IJobSubmitter() {
-		//
-		// @Override
-		// public void submit(final IJobEntity jobEntity) throws JobQueueException {
-		// processFinishedJob(jobEntity);
-		// }
-		//
-		// @Override
-		// public Collection<IJobEntity> getJobs() throws JobQueueException {
-		// return persister.getFinishedJobs();
-		// }
-		// }));
-
 	}
 
 	/**
@@ -156,10 +107,6 @@ public class JobQueueService implements IJobQueueService {
 	public void stop() {
 
 		this.logger.info("JobQueueService#stop()");
-
-		// this.newJobScannerPool.shutdownNow();
-		// this.finishedJobScannerPool.shutdownNow();
-		// this.exceededJobScannerPool.shutdownNow();
 		this.jobScannerPool.shutdownNow();
 		this.newJobExecutorPool.shutdownNow();
 		this.finishedJobExecutorPool.shutdownNow();
