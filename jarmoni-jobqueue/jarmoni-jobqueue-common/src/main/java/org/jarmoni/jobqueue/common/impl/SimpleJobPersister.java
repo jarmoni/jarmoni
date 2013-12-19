@@ -139,16 +139,17 @@ public class SimpleJobPersister implements IJobPersister {
 
 		for (final IJobEntity jobEntity : this.jobs.values()) {
 
-			jobEntity.setLastUpdate(Calendar.getInstance().getTime());
+			if (JobState.NEW_IN_PROGRESS.equals(jobEntity.getJobState()) || JobState.EXCEEDED_IN_PROGRESS.equals(jobEntity.getJobState())
+					|| JobState.FINISHED_IN_PROGRESS.equals(jobEntity.getJobState())) {
 
-			if (JobState.NEW_IN_PROGRESS.equals(jobEntity.getJobState())) {
-				jobEntity.setJobState(JobState.NEW);
-			}
-			if (JobState.FINISHED_IN_PROGRESS.equals(jobEntity.getJobState())) {
-				jobEntity.setJobState(JobState.FINISHED);
-			}
-			if (JobState.EXCEEDED_IN_PROGRESS.equals(jobEntity.getJobState())) {
-				jobEntity.setJobState(JobState.EXCEEDED);
+				if (JobState.NEW_IN_PROGRESS.equals(jobEntity.getJobState())) {
+					jobEntity.setJobState(JobState.NEW);
+				} else if (JobState.EXCEEDED_IN_PROGRESS.equals(jobEntity.getJobState())) {
+					jobEntity.setJobState(JobState.EXCEEDED);
+				} else if (JobState.FINISHED_IN_PROGRESS.equals(jobEntity.getJobState())) {
+					jobEntity.setJobState(JobState.FINISHED);
+				}
+				jobEntity.setLastUpdate(Calendar.getInstance().getTime());
 			}
 		}
 
