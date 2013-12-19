@@ -12,12 +12,28 @@
 		<!-- checkstyle -->
 		<checkstyle.config.dir>../../</checkstyle.config.dir>
 	</properties>
-	
+
 	<dependencies>
 		<dependency>
 			<groupId>org.jarmoni</groupId>
 			<artifactId>jarmoni-util</artifactId>
 			<version>${project.version}</version>
+		</dependency>
+		<!-- spring -->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-core</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-beans</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 </project>

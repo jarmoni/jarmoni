@@ -3,7 +3,7 @@
  * Original Author: ms
  * Creation Date: Dec 9, 2013
  */
-package org.jarmoni.jobqueue.jpa;
+package org.jarmoni.jobqueue.common.impl;
 
 import java.io.Serializable;
 

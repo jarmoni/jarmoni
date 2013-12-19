@@ -86,6 +86,14 @@ public interface IJobPersister {
 	void setFinished(String jobId) throws JobQueueException;
 
 	/**
+	 * Sets state to <code>ERROR</code>
+	 * 
+	 * @param jobId
+	 * @throws JobQueueException
+	 */
+	void setError(String jobId) throws JobQueueException;
+
+	/**
 	 * Returns job with given <code>jobId</code>
 	 * 
 	 * @param jobId
@@ -120,10 +128,10 @@ public interface IJobPersister {
 	 * <li><code>current time < lastUpdate + currentTimeout</li>
 	 * </ul>
 	 * 
-	 * The <code>jobState</code> of these jobs must be set to <code>EXCEEDED_IN_PROGRESS</code> before method returns.
+	 * The <code>jobState</code> of these jobs must be set to <code>EXCEEDED</code> before method returns.
 	 * 
 	 */
-	Collection<IJobEntity> getExceededJobs() throws JobQueueException;
+	Collection<IJobEntity> getTimeoutJobs() throws JobQueueException;
 
 	/**
 	 * Should be invoked before the scanner-threads start. Sets the following properties:
@@ -132,7 +140,6 @@ public interface IJobPersister {
 	 * <li>if <code>jobState = NEW_IN_PROGRESS</code> -> <code>jobState = NEW</code></li>
 	 * <li>if <code>jobState = FINISHED_IN_PROGRESS</code> -> <code>jobState = FINISHED</code></li>
 	 * <li>if <code>jobState = EXCEEDED_IN_PROGRESS</code> -> <code>jobState = EXCEEDED</code></li>
-	 * <li>if <code>jobState = ERROR_IN_PROGRESS</code> -> <code>jobState = ERROR</code></li>
 	 * </ul>
 	 * 
 	 * @throws JobQueueException

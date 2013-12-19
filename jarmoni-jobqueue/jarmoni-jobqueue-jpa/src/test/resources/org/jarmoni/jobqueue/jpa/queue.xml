@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.2.xsd">
+
+	<import resource="database.xml" />
+
+	<bean id="jobReceiver" class="org.easymock.EasyMock" factory-method="createStrictMock">
+		<constructor-arg value="org.jarmoni.jobqueue.common.api.IJobReceiver" />
+	</bean>
+	<bean id="finishedReceiver" class="org.easymock.EasyMock" factory-method="createStrictMock">
+		<constructor-arg value="org.jarmoni.jobqueue.common.api.IJobReceiver" />
+	</bean>
+	<bean id="timeoutReceiver" class="org.easymock.EasyMock" factory-method="createMock">
+		<constructor-arg value="org.jarmoni.jobqueue.common.api.IJobReceiver" />
+	</bean>
+
+	<bean id="finishedStrategy" class="org.easymock.EasyMock" factory-method="createStrictMock">
+		<constructor-arg value="org.jarmoni.jobqueue.common.api.IJobFinishedStrategy"/>
+	</bean>
+	
+	<util:list id="finishedStragegies" value-type="org.jarmoni.jobqueue.common.api.IJobFinishedStrategy">
+		<ref bean="finishedStrategy"/>
+	</util:list>
+
+	<bean id="jobGroup" class="org.jarmoni.jobqueue.common.impl.JobGroup">
+		<constructor-arg name="name" value="myGroup" />
+		<property name="jobReceiver" ref="jobReceiver" />
+		<property name="finishedReceiver" ref="finishedReceiver" />
+		<property name="timeoutReceiver" ref="timeoutReceiver" />
+		<property name="jobFinishedStrategies" ref="finishedStragegies" />
+	</bean>
+
+	<util:list id="jobGroups" value-type="org.jarmoni.jobqueue.common.impl.JobGroup">
+		<ref bean="jobGroup" />
+	</util:list>
+
+	<bean id="jobQueueService" class="org.jarmoni.jobqueue.common.impl.JobQueueService" init-method="start"
+		destroy-method="stop">
+		<constructor-arg name="jobGroups" ref="jobGroups" />
+		<constructor-arg name="jobPersister" ref="persister" />
+	</bean>
+
+	<bean id="jobQueue" class="org.jarmoni.jobqueue.common.impl.JobQueue">
+		<constructor-arg name="queueService" ref="jobQueueService" />
+	</bean>
+
+
+</beans>

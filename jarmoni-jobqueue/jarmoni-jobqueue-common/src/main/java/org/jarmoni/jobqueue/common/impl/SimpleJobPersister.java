@@ -12,7 +12,6 @@ import java.util.UUID;
 
 import org.jarmoni.jobqueue.common.api.IJobEntity;
 import org.jarmoni.jobqueue.common.api.IJobPersister;
-import org.jarmoni.util.Asserts;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -39,8 +38,7 @@ public class SimpleJobPersister implements IJobPersister {
 	@Override
 	public void delete(final String jobId) throws JobQueueException {
 
-		final IJobEntity jobEntity = this.jobs.remove(jobId);
-		Asserts.notNull(jobEntity, "No JobEntity with id='" + jobId + "' exists", JobQueueException.class);
+		this.jobs.remove(jobId);
 	}
 
 	@Override
@@ -77,6 +75,15 @@ public class SimpleJobPersister implements IJobPersister {
 	}
 
 	@Override
+	public void setError(final String jobId) throws JobQueueException {
+
+		final IJobEntity jobEntity = this.getJobEntityInternal(jobId);
+		if (jobEntity != null) {
+			jobEntity.setJobState(JobState.ERROR);
+		}
+	}
+
+	@Override
 	public IJobEntity getJobEntity(final String jobId) throws JobQueueException {
 
 		return this.getJobEntityInternal(jobId);
@@ -109,19 +116,19 @@ public class SimpleJobPersister implements IJobPersister {
 	}
 
 	@Override
-	public Collection<IJobEntity> getExceededJobs() throws JobQueueException {
+	public Collection<IJobEntity> getTimeoutJobs() throws JobQueueException {
 
 		final Collection<IJobEntity> currentJobs = Lists.newArrayList();
 		for (final IJobEntity jobEntity : this.jobs.values()) {
-			if (JobState.PAUSED.equals(jobEntity.getJobState())) {
+			if (JobState.PAUSED.equals(jobEntity.getJobState()) || JobState.ERROR.equals(jobEntity.getJobState())
+					|| JobState.EXCEEDED_IN_PROGRESS.equals(jobEntity.getJobState())) {
 				continue;
 			}
-			if (jobEntity.getCurrentTimeout() == null) {
-				continue;
-			}
-			if (jobEntity.getLastUpdate().getTime() + jobEntity.getCurrentTimeout() < System.currentTimeMillis()) {
-				jobEntity.setJobState(JobState.EXCEEDED_IN_PROGRESS);
-				currentJobs.add(jobEntity);
+			if (jobEntity.getCurrentTimeout() != null) {
+				if (jobEntity.getLastUpdate().getTime() + jobEntity.getCurrentTimeout() < System.currentTimeMillis()) {
+					jobEntity.setJobState(JobState.EXCEEDED_IN_PROGRESS);
+					currentJobs.add(jobEntity);
+				}
 			}
 		}
 		return currentJobs;
@@ -143,18 +150,13 @@ public class SimpleJobPersister implements IJobPersister {
 			if (JobState.EXCEEDED_IN_PROGRESS.equals(jobEntity.getJobState())) {
 				jobEntity.setJobState(JobState.EXCEEDED);
 			}
-			if (JobState.ERROR_IN_PROGRESS.equals(jobEntity.getJobState())) {
-				jobEntity.setJobState(JobState.ERROR);
-			}
 		}
 
 	}
 
 	private IJobEntity getJobEntityInternal(final String jobId) throws JobQueueException {
 
-		final IJobEntity jobEntity = this.jobs.get(jobId);
-		Asserts.notNull(jobEntity, "No JobEntity with id='" + jobId + "' exists", JobQueueException.class);
-		return jobEntity;
+		return this.jobs.get(jobId);
 	}
 
 }

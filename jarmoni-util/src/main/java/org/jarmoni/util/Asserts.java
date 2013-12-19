@@ -19,7 +19,7 @@ public final class Asserts {
 	 */
 	public static <T> T notNullSimple(final T arg, final String argName) {
 		if (arg == null) {
-			throw new NullPointerException(new StringBuilder().append("'").append(argName).append("' must not be null").toString());
+			throw new NullPointerException(String.format("'%s' must not be null", argName));
 		}
 		return arg;
 	}
@@ -40,8 +40,7 @@ public final class Asserts {
 	 */
 	public static <T, E extends Exception> T notNullSimple(final T arg, final String argName, final Class<E> exceptionClass) throws E {
 		if (arg == null) {
-			throw ReflectionUtil.createException(exceptionClass, new StringBuilder().append("'").append(argName).append("' must not be null'")
-					.toString(), null);
+			throw ReflectionUtil.createException(exceptionClass, String.format("'%s' must not be null", argName), null);
 		}
 		return arg;
 	}
@@ -61,11 +60,11 @@ public final class Asserts {
 	 * checks if {@link CharSequence} <code>arg</code> with name <code>argName</code> is null or empty and throws
 	 * instance of <code>exceptionClass</code> with standard-message if so.
 	 */
-	public static <E extends Exception> CharSequence notNullOrEmptySimple(final CharSequence arg, final String argName, final Class<E> exceptionClass)
-			throws E {
+	public static <E extends Exception, S extends CharSequence> S notNullOrEmptySimple(final S arg, final String argName,
+			final Class<E> exceptionClass) throws E {
+
 		if (arg == null || arg.length() == 0) {
-			throw ReflectionUtil.createException(exceptionClass,
-					new StringBuilder().append("'").append(argName).append("' must not be not null||empty").toString(), null);
+			throw ReflectionUtil.createException(exceptionClass, String.format("'%s' must not be null||empty", argName), null);
 		}
 		return arg;
 	}
@@ -74,7 +73,7 @@ public final class Asserts {
 	 * checks if {@link CharSequence} <code>arg</code> with name <code>argName</code> is null or empty and throws
 	 * instance of <code>exceptionClass</code> with <code>message</code> if so.
 	 */
-	public static <E extends Exception> CharSequence notNullOrEmpty(final CharSequence arg, final String message, final Class<E> exceptionClass)
+	public static <E extends Exception, S extends CharSequence> S notNullOrEmpty(final S arg, final String message, final Class<E> exceptionClass)
 			throws E {
 		if (arg == null || arg.length() == 0) {
 			throw ReflectionUtil.createException(exceptionClass, message, null);

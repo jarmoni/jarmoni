@@ -76,14 +76,14 @@ public class AssertsTest {
 	@Test
 	public void testNotNullOrEmptySimpleIsEmpty() throws Exception {
 		this.ee.expect(IllegalStateException.class);
-		this.ee.expectMessage("'string' must not be not null||empty");
+		this.ee.expectMessage("'string' must not be null||empty");
 		Asserts.notNullOrEmptySimple("", "string", IllegalStateException.class);
 	}
 
 	@Test
 	public void testNotNullOrEmptySimpleIsNull() throws Exception {
 		this.ee.expect(IllegalArgumentException.class);
-		this.ee.expectMessage("'string' must not be not null||empty");
+		this.ee.expectMessage("'string' must not be null||empty");
 		Asserts.notNullOrEmptySimple(null, "string", IllegalArgumentException.class);
 	}
 

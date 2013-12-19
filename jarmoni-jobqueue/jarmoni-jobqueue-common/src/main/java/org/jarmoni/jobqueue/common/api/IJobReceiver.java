@@ -8,5 +8,4 @@ package org.jarmoni.jobqueue.common.api;
 public interface IJobReceiver {
 
 	void receive(IJob job) throws Exception;
-
 }

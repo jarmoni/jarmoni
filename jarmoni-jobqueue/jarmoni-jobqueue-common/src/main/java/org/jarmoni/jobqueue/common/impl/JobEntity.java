@@ -45,7 +45,7 @@ public class JobEntity implements IJobEntity {
 
 	@Override
 	public void setTimeout(final Long timeout) {
-		this.setTimeout(timeout);
+		this.timeout = timeout;
 	}
 
 	@Override

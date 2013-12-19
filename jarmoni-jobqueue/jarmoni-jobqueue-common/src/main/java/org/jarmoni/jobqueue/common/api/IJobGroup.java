@@ -26,17 +26,4 @@ public interface IJobGroup {
 	IJobReceiver getTimeoutReceiver();
 
 	void setTimeoutReceiver(IJobReceiver timeoutReceiver);
-
-	// int getNumJobReceiverThreads();
-	//
-	// void setNumJobReceiverThreads(final int numJobReceiverThreads);
-	//
-	// int getNumFinishedReceiverThreads();
-	//
-	// void setNumFinishedReceiverThreads(final int numFinishedReceiverThreads);
-	//
-	// int getNumTimeoutReceiverThreads();
-	//
-	// void setNumTimeoutReceiverThreads(final int numTimeoutReceiverThreads);
-
 }

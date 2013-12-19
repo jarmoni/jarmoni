@@ -12,20 +12,21 @@
 	<context:spring-configured />
 	<context:annotation-config />
 
-	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource">
-		<!-- <property name="url" value="jdbc:h2:~/.jarmoni/jobqueue" /> -->
+	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+<!-- 		<property name="url" value="jdbc:h2:~/.jarmoni/jobqueue" /> -->
 		<property name="url" value="jdbc:h2:mem:jobqueue;TRACE_LEVEL_SYSTEM_OUT=1" />
 		<property name="driverClassName" value="org.h2.Driver" />
 		<property name="username" value="abc" />
 		<property name="password" value="123" />
-		<!-- <property name="maxActive" value="25" /> -->
+		<property name="maxActive" value="20" />
 	</bean>
+	
 
 	<bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
 		<property name="entityManagerFactory" ref="entityManagerFactory" />
 	</bean>
 
-	<bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+	<bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean" destroy-method="destroy">
 		<property name="dataSource" ref="dataSource" />
 		<property name="persistenceXmlLocation" value="classpath:/org/jarmoni/jobqueue/jpa/persistence.xml" />
 	</bean>
