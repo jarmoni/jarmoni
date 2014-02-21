@@ -43,12 +43,12 @@
 
 		<!-- software -->
 		<!-- spring -->
-		<spring.version>3.2.5.RELEASE</spring.version>
+		<spring.version>4.0.1.RELEASE</spring.version>
 		<!-- guava -->
-		<guava.version>15.0</guava.version>
+		<guava.version>16.0.1</guava.version>
 		<!-- logging -->
-		<slf4j.version>1.7.5</slf4j.version>
-		<logback.version>1.0.13</logback.version>
+		<slf4j.version>1.7.6</slf4j.version>
+		<logback.version>1.1.1</logback.version>
 		<commons-logging.version>99.0-does-not-exist</commons-logging.version>
 		<!-- testing -->
 		<junit.version>4.11</junit.version>
@@ -296,5 +296,6 @@
 	<modules>
 		<module>jarmoni-jobqueue</module>
 		<module>jarmoni-util</module>
+		<module>jarmoni-resteasy</module>
 	</modules>
 </project>
