@@ -13,6 +13,7 @@
 		<checkstyle.config.dir>../../</checkstyle.config.dir>
 		<servlet.api.version>3.0.1</servlet.api.version>
 		<spring.boot.version>1.0.0.RC3</spring.boot.version>
+		<jackson.version>2.3.1</jackson.version>
 	</properties>
 
 	<dependencies>
@@ -21,12 +22,12 @@
 			<artifactId>jarmoni-resteasy-common</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-<!-- 		<dependency> -->
-<!-- 			<groupId>org.jarmoni</groupId> -->
-<!-- 			<artifactId>jarmoni-resteasy-common</artifactId> -->
-<!-- 			<version>${project.version}</version> -->
-<!-- 			<scope>test-jar</scope> -->
-<!-- 		</dependency> -->
+		<!-- <dependency> -->
+		<!-- <groupId>org.jarmoni</groupId> -->
+		<!-- <artifactId>jarmoni-resteasy-common</artifactId> -->
+		<!-- <version>${project.version}</version> -->
+		<!-- <scope>test-jar</scope> -->
+		<!-- </dependency> -->
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-web</artifactId>
@@ -36,6 +37,11 @@
 			<groupId>javax.servlet</groupId>
 			<artifactId>javax.servlet-api</artifactId>
 			<version>${servlet.api.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<version>${jackson.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -56,7 +62,7 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-	
+
 	<repositories>
 		<repository>
 			<id>spring-milestones</id>
