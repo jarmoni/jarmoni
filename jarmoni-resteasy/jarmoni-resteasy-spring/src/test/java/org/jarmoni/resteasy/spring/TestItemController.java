@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.google.common.collect.Lists;
 
 @RestController
-@RequestMapping
 public class TestItemController {
 
 	public static final String ROOT_PATH = "/items";
