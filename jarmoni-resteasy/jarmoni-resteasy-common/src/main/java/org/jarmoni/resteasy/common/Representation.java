@@ -10,13 +10,23 @@ import java.util.List;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 
-public class Representation<T extends AbstractItem> {
+public class Representation<T> {
+
+	private String version;
 
 	private List<Link> links = Lists.newArrayList();
 
-	private List<T> items = Lists.newArrayList();
+	private List<Item<T>> items = Lists.newArrayList();
 
 	public Representation() {
+	}
+
+	public String getVersion() {
+		return version;
+	}
+
+	public void setVersion(final String version) {
+		this.version = version;
 	}
 
 	public List<Link> getLinks() {
@@ -27,11 +37,11 @@ public class Representation<T extends AbstractItem> {
 		this.links = links;
 	}
 
-	public List<T> getItems() {
+	public List<Item<T>> getItems() {
 		return items;
 	}
 
-	public void setItems(final List<T> items) {
+	public void setItems(final List<Item<T>> items) {
 		this.items = items;
 	}
 
@@ -44,7 +54,7 @@ public class Representation<T extends AbstractItem> {
 		return new RepresentationBuilder<>();
 	}
 
-	public static final class RepresentationBuilder<T extends AbstractItem> {
+	public static final class RepresentationBuilder<T> {
 
 		private final Representation<T> representation;
 
@@ -54,6 +64,11 @@ public class Representation<T extends AbstractItem> {
 
 		public Representation<T> build() {
 			return this.representation;
+		}
+
+		public RepresentationBuilder<T> version(final String version) {
+			this.representation.version = version;
+			return this;
 		}
 
 		public RepresentationBuilder<T> links(final List<Link> links) {
@@ -66,12 +81,12 @@ public class Representation<T extends AbstractItem> {
 			return this;
 		}
 
-		public RepresentationBuilder<T> items(final List<T> items) {
+		public RepresentationBuilder<T> items(final List<Item<T>> items) {
 			this.representation.setItems(items);
 			return this;
 		}
 
-		public RepresentationBuilder<T> addItem(final T item) {
+		public RepresentationBuilder<T> addItem(final Item<T> item) {
 			this.representation.items.add(item);
 			return this;
 		}

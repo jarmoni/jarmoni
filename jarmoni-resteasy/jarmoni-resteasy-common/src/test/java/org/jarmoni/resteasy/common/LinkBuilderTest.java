@@ -11,7 +11,7 @@ import org.junit.Test;
 
 public class LinkBuilderTest {
 
-	private final LinkBuilder linkBuilder = new LinkBuilder(new TestUrlResolver());
+	private final LinkFactory linkBuilder = new LinkFactory(new TestUrlResolver());
 
 	@Test
 	public void testCreateLink() throws Exception {

@@ -1,7 +1,7 @@
 package org.jarmoni.resteasy.spring;
 
 import org.jarmoni.resteasy.common.IUrlResolver;
-import org.jarmoni.resteasy.common.LinkBuilder;
+import org.jarmoni.resteasy.common.LinkFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -19,8 +19,8 @@ public class TestApplication {
 	}
 
 	@Bean
-	public LinkBuilder linkBuilder() {
-		return new LinkBuilder(this.urlResolver());
+	public LinkFactory linkBuilder() {
+		return new LinkFactory(this.urlResolver());
 	}
 
 	public static void main(final String[] args) {

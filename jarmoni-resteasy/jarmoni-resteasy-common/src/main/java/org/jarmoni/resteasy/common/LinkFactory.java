@@ -11,13 +11,13 @@ import static org.jarmoni.util.Asserts.notNullSimple;
  * @author ms Creates link-instances
  * 
  */
-public final class LinkBuilder {
+public final class LinkFactory {
 
 	public static final String SELF_REF = "self";
 
 	private final IUrlResolver urlResolver;
 
-	public LinkBuilder(final IUrlResolver urlResolver) {
+	public LinkFactory(final IUrlResolver urlResolver) {
 		this.urlResolver = notNullSimple(urlResolver, "urlResolver");
 	}
 
