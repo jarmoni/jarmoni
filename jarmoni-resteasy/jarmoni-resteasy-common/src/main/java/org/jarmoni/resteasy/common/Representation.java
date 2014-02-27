@@ -10,7 +10,7 @@ import java.util.List;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 
-public class Representation<T> {
+public class Representation<T extends AbstractItem> {
 
 	private List<Link> links = Lists.newArrayList();
 
@@ -44,7 +44,7 @@ public class Representation<T> {
 		return new RepresentationBuilder<>();
 	}
 
-	public static final class RepresentationBuilder<T> {
+	public static final class RepresentationBuilder<T extends AbstractItem> {
 
 		private final Representation<T> representation;
 
